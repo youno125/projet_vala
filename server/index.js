@@ -3,6 +3,8 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 require('dotenv').config()
 
+const authRoutes = require('./routes/auth')
+
 const app = express()
 app.use(cors())
 app.use(express.json())
@@ -10,6 +12,8 @@ app.use(express.json())
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connecté'))
   .catch(err => console.log('❌ Erreur MongoDB:', err))
+
+app.use('/api/auth', authRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: '✅ API SIPMS opérationnelle' })
