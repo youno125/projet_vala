@@ -21,7 +21,8 @@ function Login() {
       localStorage.setItem('token', res.data.token)
       localStorage.setItem('user', JSON.stringify(res.data.user))
 
-      alert(`Bienvenue ${res.data.user.prenom} — Rôle : ${res.data.user.role}`)
+      
+      window.location.href = '/dashboard'
 
     } catch (err) {
       setErreur('Email ou mot de passe incorrect')
