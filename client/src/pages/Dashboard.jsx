@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import Stagiaires from './Stagiaires'
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -108,8 +109,11 @@ function Dashboard() {
           </div>
         )}
 
+        {/* Stagiaires */}
+        {activeMenu === 'stagiaires' && <Stagiaires />}
+
         {/* Other menus */}
-        {activeMenu !== 'dashboard' && (
+        {activeMenu !== 'dashboard' && activeMenu !== 'stagiaires' && (
           <div>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
