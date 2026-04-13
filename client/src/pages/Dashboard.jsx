@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Stagiaires from './Stagiaires'
+import Missions from './Missions'
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -69,7 +70,6 @@ function Dashboard() {
       {/* Main content */}
       <div className="flex-1 p-6">
 
-        {/* Dashboard view */}
         {activeMenu === 'dashboard' && (
           <div>
             <div className="mb-6">
@@ -109,11 +109,10 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Stagiaires */}
         {activeMenu === 'stagiaires' && <Stagiaires />}
+        {activeMenu === 'missions' && <Missions />}
 
-        {/* Other menus */}
-        {activeMenu !== 'dashboard' && activeMenu !== 'stagiaires' && (
+        {activeMenu !== 'dashboard' && activeMenu !== 'stagiaires' && activeMenu !== 'missions' && (
           <div>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 capitalize">

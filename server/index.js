@@ -5,6 +5,7 @@ require('dotenv').config()
 
 const authRoutes = require('./routes/auth')
 const stagiaireRoutes = require('./routes/stagiaires')
+const missionRoutes = require('./routes/missions')
 
 const app = express()
 app.use(cors())
@@ -16,6 +17,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.use('/api/auth', authRoutes)
 app.use('/api/stagiaires', stagiaireRoutes)
+app.use('/api/missions', missionRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: '✅ API SIPMS opérationnelle' })
