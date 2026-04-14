@@ -66,3 +66,26 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
 }
+exports.changerMotDePasse = async (req, res) => {
+  try {
+    const { ancien_mot_de_passe, nouveau_mot_de_passe } = req.body
+
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' })
+    }
+
+    const valide = await bcrypt.compare(ancien_mot_de_passe, user.mot_de_passe)
+    if (!valide) {
+      return res.status(400).json({ message: 'Ancien mot de passe incorrect' })
+    }
+
+    const hash = await bcrypt.hash(nouveau_mot_de_passe, 10)
+    await User.findByIdAndUpdate(req.user.id, { mot_de_passe: hash })
+
+    res.json({ message: 'Mot de passe changé avec succès' })
+
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}

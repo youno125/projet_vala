@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Stagiaires from './Stagiaires'
 import Missions from './Missions'
 import Rapports from './Rapports'
+import ChangerMotDePasse from './ChangerMotDePasse'
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -13,14 +14,18 @@ function Dashboard() {
     window.location.href = '/'
   }
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'stagiaires', label: 'Stagiaires', icon: '👨‍🎓' },
-    { id: 'missions', label: 'Missions', icon: '📋' },
-    { id: 'rapports', label: 'Rapports', icon: '📝' },
-    { id: 'evaluations', label: 'Évaluations', icon: '⭐' },
-    { id: 'scores', label: 'Scores', icon: '🏆' },
+  const allMenus = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'stagiaires', label: 'Stagiaires', icon: '👨‍🎓', roles: ['admin', 'tuteur', 'directeur'] },
+    { id: 'missions', label: 'Missions', icon: '📋', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'rapports', label: 'Rapports', icon: '📝', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'evaluations', label: 'Évaluations', icon: '⭐', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'scores', label: 'Scores', icon: '🏆', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'utilisateurs', label: 'Utilisateurs', icon: '👥', roles: ['admin', 'directeur'] },
+    { id: 'profil', label: 'Mon profil', icon: '👤', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
   ]
+
+  const menuItems = allMenus.filter(m => m.roles.includes(user?.role))
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -78,33 +83,43 @@ function Dashboard() {
                 Bonjour, {user?.prenom} 👋
               </h2>
               <p className="text-gray-500 text-sm mt-1">
-                Voici le tableau de bord de votre application
+                {user?.role === 'stagiaire'
+                  ? 'Bienvenue sur votre espace stagiaire'
+                  : 'Voici le tableau de bord de votre application'}
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">Stagiaires actifs</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {user?.role === 'stagiaire' ? 'Mes missions' : 'Stagiaires actifs'}
+                </p>
                 <p className="text-2xl font-semibold text-gray-900">0</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">Missions en cours</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {user?.role === 'stagiaire' ? 'Missions terminées' : 'Missions en cours'}
+                </p>
                 <p className="text-2xl font-semibold text-gray-900">0</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">Rapports aujourd'hui</p>
+                <p className="text-sm text-gray-500 mb-1">
+                  {user?.role === 'stagiaire' ? 'Mes rapports' : "Rapports aujourd'hui"}
+                </p>
                 <p className="text-2xl font-semibold text-gray-900">0</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">Score moyen</p>
+                <p className="text-sm text-gray-500 mb-1">Mon score</p>
                 <p className="text-2xl font-semibold text-gray-900">—</p>
               </div>
             </div>
 
             <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <p className="text-sm font-medium text-gray-700 mb-4">Stagiaires récents</p>
+              <p className="text-sm font-medium text-gray-700 mb-4">
+                {user?.role === 'stagiaire' ? 'Mes derniers rapports' : 'Stagiaires récents'}
+              </p>
               <p className="text-sm text-gray-400 text-center py-8">
-                Aucun stagiaire pour l'instant
+                Aucune donnée pour l'instant
               </p>
             </div>
           </div>
@@ -114,10 +129,48 @@ function Dashboard() {
         {activeMenu === 'missions' && <Missions />}
         {activeMenu === 'rapports' && <Rapports />}
 
+        {activeMenu === 'profil' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Mon profil</h2>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 max-w-md">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-xl font-medium text-blue-700">
+                  {user?.prenom?.[0]}{user?.nom?.[0]}
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">{user?.prenom} {user?.nom}</p>
+                  <p className="text-sm text-gray-500">{user?.email}</p>
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                    {user?.role}
+                  </span>
+                </div>
+              </div>
+              <ChangerMotDePasse />
+            </div>
+          </div>
+        )}
+
+        {activeMenu === 'utilisateurs' && (
+          <div>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Gestion des utilisateurs</h2>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 p-6">
+              <p className="text-sm text-gray-400 text-center py-8">
+                Module en cours de développement...
+              </p>
+            </div>
+          </div>
+        )}
+
         {activeMenu !== 'dashboard' &&
          activeMenu !== 'stagiaires' &&
          activeMenu !== 'missions' &&
-         activeMenu !== 'rapports' && (
+         activeMenu !== 'rapports' &&
+         activeMenu !== 'profil' &&
+         activeMenu !== 'utilisateurs' && (
           <div>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 capitalize">
