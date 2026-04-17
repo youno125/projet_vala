@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Stagiaires from './Stagiaires'
 import Missions from './Missions'
 import Rapports from './Rapports'
+import Scores from './Scores'
 import ChangerMotDePasse from './ChangerMotDePasse'
 
 function Dashboard() {
@@ -128,6 +129,7 @@ function Dashboard() {
         {activeMenu === 'stagiaires' && <Stagiaires />}
         {activeMenu === 'missions' && <Missions />}
         {activeMenu === 'rapports' && <Rapports />}
+        {activeMenu === 'scores' && <Scores />}
 
         {activeMenu === 'profil' && (
           <div>
@@ -169,6 +171,7 @@ function Dashboard() {
          activeMenu !== 'stagiaires' &&
          activeMenu !== 'missions' &&
          activeMenu !== 'rapports' &&
+         activeMenu !== 'scores' &&
          activeMenu !== 'profil' &&
          activeMenu !== 'utilisateurs' && (
           <div>
