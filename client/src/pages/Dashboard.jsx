@@ -3,6 +3,7 @@ import Stagiaires from './Stagiaires'
 import Missions from './Missions'
 import Rapports from './Rapports'
 import Scores from './Scores'
+import Evaluations from './Evaluations'
 import ChangerMotDePasse from './ChangerMotDePasse'
 
 function Dashboard() {
@@ -130,6 +131,7 @@ function Dashboard() {
         {activeMenu === 'missions' && <Missions />}
         {activeMenu === 'rapports' && <Rapports />}
         {activeMenu === 'scores' && <Scores />}
+        {activeMenu === 'evaluations' && <Evaluations />}
 
         {activeMenu === 'profil' && (
           <div>
@@ -172,6 +174,7 @@ function Dashboard() {
          activeMenu !== 'missions' &&
          activeMenu !== 'rapports' &&
          activeMenu !== 'scores' &&
+         activeMenu !== 'evaluations' &&
          activeMenu !== 'profil' &&
          activeMenu !== 'utilisateurs' && (
           <div>
