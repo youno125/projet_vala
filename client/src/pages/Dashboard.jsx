@@ -4,6 +4,7 @@ import Missions from './Missions'
 import Rapports from './Rapports'
 import Scores from './Scores'
 import Evaluations from './Evaluations'
+import FeedbackIA from './FeedbackIA'
 import ChangerMotDePasse from './ChangerMotDePasse'
 
 function Dashboard() {
@@ -23,6 +24,7 @@ function Dashboard() {
     { id: 'rapports', label: 'Rapports', icon: '📝', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
     { id: 'evaluations', label: 'Évaluations', icon: '⭐', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
     { id: 'scores', label: 'Scores', icon: '🏆', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
+    { id: 'feedback_ia', label: 'Feedback IA', icon: '🤖', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
     { id: 'utilisateurs', label: 'Utilisateurs', icon: '👥', roles: ['admin', 'directeur'] },
     { id: 'profil', label: 'Mon profil', icon: '👤', roles: ['admin', 'tuteur', 'directeur', 'stagiaire'] },
   ]
@@ -132,6 +134,7 @@ function Dashboard() {
         {activeMenu === 'rapports' && <Rapports />}
         {activeMenu === 'scores' && <Scores />}
         {activeMenu === 'evaluations' && <Evaluations />}
+        {activeMenu === 'feedback_ia' && <FeedbackIA />}
 
         {activeMenu === 'profil' && (
           <div>
@@ -175,6 +178,7 @@ function Dashboard() {
          activeMenu !== 'rapports' &&
          activeMenu !== 'scores' &&
          activeMenu !== 'evaluations' &&
+         activeMenu !== 'feedback_ia' &&
          activeMenu !== 'profil' &&
          activeMenu !== 'utilisateurs' && (
           <div>
