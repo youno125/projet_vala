@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Stagiaires from './Stagiaires'
 import Missions from './Missions'
 import Rapports from './Rapports'
@@ -10,6 +11,30 @@ import ChangerMotDePasse from './ChangerMotDePasse'
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
   const [activeMenu, setActiveMenu] = useState('dashboard')
+  const [stats, setStats] = useState(null)
+  const token = localStorage.getItem('token')
+
+  const getStats = async () => {
+    try {
+      if (user?.role === 'stagiaire') {
+        const res = await axios.get('http://localhost:5000/api/dashboard/stats/stagiaire', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setStats(res.data)
+      } else {
+        const res = await axios.get('http://localhost:5000/api/dashboard/stats', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        setStats(res.data)
+      }
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  useEffect(() => {
+    getStats()
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -30,6 +55,22 @@ function Dashboard() {
   ]
 
   const menuItems = allMenus.filter(m => m.roles.includes(user?.role))
+
+  const getBadgeStyle = (badge) => {
+    const styles = {
+      'performant': 'bg-green-50 text-green-700',
+      'moyen': 'bg-yellow-50 text-yellow-700',
+      'en_difficulte': 'bg-red-50 text-red-700',
+      'risque': 'bg-orange-50 text-orange-700'
+    }
+    const labels = {
+      'performant': '🟢 Performant',
+      'moyen': '🟡 Moyen',
+      'en_difficulte': '🔴 En difficulté',
+      'risque': '⚠️ Risque'
+    }
+    return { style: styles[badge] || styles['moyen'], label: labels[badge] || labels['moyen'] }
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -93,39 +134,98 @@ function Dashboard() {
               </p>
             </div>
 
+            {/* Stats cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">
-                  {user?.role === 'stagiaire' ? 'Mes missions' : 'Stagiaires actifs'}
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">
-                  {user?.role === 'stagiaire' ? 'Missions terminées' : 'Missions en cours'}
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">
-                  {user?.role === 'stagiaire' ? 'Mes rapports' : "Rapports aujourd'hui"}
-                </p>
-                <p className="text-2xl font-semibold text-gray-900">0</p>
-              </div>
-              <div className="bg-white rounded-2xl border border-gray-100 p-5">
-                <p className="text-sm text-gray-500 mb-1">Mon score</p>
-                <p className="text-2xl font-semibold text-gray-900">—</p>
-              </div>
+              {user?.role === 'stagiaire' ? (
+                <>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Mes missions</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.mesMissions ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Missions terminées</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.missionsTerminees ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Mes rapports</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.mesRapports ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Mon score</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.monScore ?? '—'}/100</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Stagiaires actifs</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.totalStagiaires ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Missions en cours</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.missionsEnCours ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Rapports aujourd'hui</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.rapportsAujourdhui ?? '—'}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 p-5">
+                    <p className="text-sm text-gray-500 mb-1">Score moyen</p>
+                    <p className="text-2xl font-semibold text-gray-900">{stats?.scoreMoyen ?? '—'}/100</p>
+                  </div>
+                </>
+              )}
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <p className="text-sm font-medium text-gray-700 mb-4">
-                {user?.role === 'stagiaire' ? 'Mes derniers rapports' : 'Stagiaires récents'}
-              </p>
-              <p className="text-sm text-gray-400 text-center py-8">
-                Aucune donnée pour l'instant
-              </p>
-            </div>
+            {/* Stagiaires récents */}
+            {user?.role !== 'stagiaire' && (
+              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">Stagiaires récents</p>
+                </div>
+                {!stats?.stagiairesRecents || stats.stagiairesRecents.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-8">Aucun stagiaire pour l'instant</p>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Stagiaire</th>
+                        <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">École</th>
+                        <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Score</th>
+                        <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Statut</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.stagiairesRecents.map((s, i) => {
+                        const { style, label } = getBadgeStyle(s.badge)
+                        return (
+                          <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+                                  {s.user_id?.prenom?.[0]}{s.user_id?.nom?.[0]}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-medium text-gray-900">{s.user_id?.prenom} {s.user_id?.nom}</p>
+                                  <p className="text-xs text-gray-400">{s.user_id?.email}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-600">{s.ecole}</td>
+                            <td className="px-6 py-4 text-sm font-medium text-gray-900">{s.score}/100</td>
+                            <td className="px-6 py-4">
+                              <span className={`text-xs font-medium px-2 py-1 rounded-full ${style}`}>
+                                {label}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
           </div>
         )}
 
