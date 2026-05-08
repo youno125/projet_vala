@@ -14,9 +14,7 @@ exports.register = async (req, res) => {
     const hash = await bcrypt.hash(mot_de_passe, 10)
 
     const user = await User.create({
-      nom,
-      prenom,
-      email,
+      nom, prenom, email,
       mot_de_passe: hash,
       role
     })
@@ -43,6 +41,10 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Email ou mot de passe incorrect' })
     }
 
+    if (!user.actif) {
+      return res.status(403).json({ message: 'Compte désactivé — contactez votre administrateur' })
+    }
+
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -66,6 +68,7 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
 }
+
 exports.changerMotDePasse = async (req, res) => {
   try {
     const { ancien_mot_de_passe, nouveau_mot_de_passe } = req.body

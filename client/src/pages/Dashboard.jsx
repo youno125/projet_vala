@@ -7,6 +7,7 @@ import Scores from './Scores'
 import Evaluations from './Evaluations'
 import FeedbackIA from './FeedbackIA'
 import ChangerMotDePasse from './ChangerMotDePasse'
+import Utilisateurs from './Utilisateurs'
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem('user'))
@@ -134,7 +135,6 @@ function Dashboard() {
               </p>
             </div>
 
-            {/* Stats cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               {user?.role === 'stagiaire' ? (
                 <>
@@ -177,7 +177,6 @@ function Dashboard() {
               )}
             </div>
 
-            {/* Stagiaires récents */}
             {user?.role !== 'stagiaire' && (
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
@@ -235,6 +234,7 @@ function Dashboard() {
         {activeMenu === 'scores' && <Scores />}
         {activeMenu === 'evaluations' && <Evaluations />}
         {activeMenu === 'feedback_ia' && <FeedbackIA />}
+        {activeMenu === 'utilisateurs' && <Utilisateurs />}
 
         {activeMenu === 'profil' && (
           <div>
@@ -259,19 +259,6 @@ function Dashboard() {
           </div>
         )}
 
-        {activeMenu === 'utilisateurs' && (
-          <div>
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Gestion des utilisateurs</h2>
-            </div>
-            <div className="bg-white rounded-2xl border border-gray-100 p-6">
-              <p className="text-sm text-gray-400 text-center py-8">
-                Module en cours de développement...
-              </p>
-            </div>
-          </div>
-        )}
-
         {activeMenu !== 'dashboard' &&
          activeMenu !== 'stagiaires' &&
          activeMenu !== 'missions' &&
@@ -279,8 +266,8 @@ function Dashboard() {
          activeMenu !== 'scores' &&
          activeMenu !== 'evaluations' &&
          activeMenu !== 'feedback_ia' &&
-         activeMenu !== 'profil' &&
-         activeMenu !== 'utilisateurs' && (
+         activeMenu !== 'utilisateurs' &&
+         activeMenu !== 'profil' && (
           <div>
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 capitalize">

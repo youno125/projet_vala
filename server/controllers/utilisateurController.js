@@ -1,0 +1,66 @@
+const User = require('../models/User')
+const bcrypt = require('bcryptjs')
+
+exports.getUtilisateurs = async (req, res) => {
+  try {
+    const utilisateurs = await User.find()
+      .select('-mot_de_passe')
+      .sort({ createdAt: -1 })
+
+    res.json(utilisateurs)
+
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
+
+exports.creerUtilisateur = async (req, res) => {
+  try {
+    const { nom, prenom, email, mot_de_passe, role } = req.body
+
+    const userExiste = await User.findOne({ email })
+    if (userExiste) {
+      return res.status(400).json({ message: 'Email déjà utilisé' })
+    }
+
+    const hash = await bcrypt.hash(mot_de_passe, 10)
+    const user = await User.create({
+      nom, prenom, email,
+      mot_de_passe: hash,
+      role
+    })
+
+    const userSansMotDePasse = await User.findById(user._id).select('-mot_de_passe')
+    res.status(201).json({ message: 'Utilisateur créé avec succès', user: userSansMotDePasse })
+
+  } catch (error) {
+    console.log('ERREUR:', error)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
+
+exports.toggleActif = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+    if (!user) {
+      return res.status(404).json({ message: 'Utilisateur non trouvé' })
+    }
+
+    user.actif = !user.actif
+    await user.save()
+
+    res.json({ message: `Utilisateur ${user.actif ? 'activé' : 'désactivé'}`, user })
+
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
+
+exports.supprimerUtilisateur = async (req, res) => {
+  try {
+    await User.findByIdAndDelete(req.params.id)
+    res.json({ message: 'Utilisateur supprimé' })
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
