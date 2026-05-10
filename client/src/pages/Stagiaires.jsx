@@ -60,6 +60,23 @@ function Stagiaires() {
     return colors[niveau] || 'bg-gray-100 text-gray-600'
   }
 
+  const genererPDF = (stagiaireUserId, nom, prenom) => {
+    const token = localStorage.getItem('token')
+    fetch(`http://localhost:5000/api/pdf/attestation/${stagiaireUserId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `attestation_${nom}_${prenom}.pdf`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      })
+      .catch(err => console.log(err))
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -149,6 +166,7 @@ function Stagiaires() {
                 <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Niveau</th>
                 <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Département</th>
                 <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Période</th>
+                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -174,6 +192,14 @@ function Stagiaires() {
                   <td className="px-6 py-4 text-sm text-gray-600">{s.departement}</td>
                   <td className="px-6 py-4 text-xs text-gray-400">
                     {new Date(s.date_debut).toLocaleDateString('fr-FR')} → {new Date(s.date_fin).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => genererPDF(s.user_id?._id, s.user_id?.nom, s.user_id?.prenom)}
+                      className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg transition"
+                    >
+                      📄 Attestation PDF
+                    </button>
                   </td>
                 </tr>
               ))}

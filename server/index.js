@@ -12,6 +12,7 @@ const evaluationRoutes = require('./routes/evaluations')
 const iaRoutes = require('./routes/ia')
 const dashboardRoutes = require('./routes/dashboard')
 const utilisateurRoutes = require('./routes/utilisateurs')
+const pdfRoutes = require('./routes/pdf')
 
 const app = express()
 app.use(cors())
@@ -30,6 +31,7 @@ app.use('/api/evaluations', evaluationRoutes)
 app.use('/api/ia', iaRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 app.use('/api/utilisateurs', utilisateurRoutes)
+app.use('/api/pdf', pdfRoutes)
 
 app.get('/', (req, res) => {
   res.json({ message: '✅ API SIPMS opérationnelle' })

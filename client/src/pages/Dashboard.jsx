@@ -101,7 +101,10 @@ function Dashboard() {
         </nav>
 
         <div className="px-4 py-4 border-t border-gray-100">
-          <div className="flex items-center gap-3 mb-3">
+          <div
+            className="flex items-center gap-3 mb-3 cursor-pointer hover:opacity-80 transition"
+            onClick={() => setActiveMenu('profil')}
+          >
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
               {user?.prenom?.[0]}{user?.nom?.[0]}
             </div>
