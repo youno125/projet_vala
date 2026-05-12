@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer')
+const fs = require('fs')
+const path = require('path')
 const Stagiaire = require('../models/Stagiaire')
 const Score = require('../models/Score')
-const Evaluation = require('../models/Evaluation')
 
 exports.genererAttestation = async (req, res) => {
   try {
@@ -15,15 +16,16 @@ exports.genererAttestation = async (req, res) => {
       return res.status(404).json({ message: 'Stagiaire non trouvé' })
     }
 
-    const dernierScore = await Score.findOne({ stagiaire_id })
-      .sort({ date: -1 })
-
-    const derniereEval = await Evaluation.findOne({ stagiaire_id })
-      .sort({ createdAt: -1 })
+    const dernierScore = await Score.findOne({ stagiaire_id }).sort({ date: -1 })
 
     const dateDebut = new Date(stagiaire.date_debut).toLocaleDateString('fr-FR')
     const dateFin = new Date(stagiaire.date_fin).toLocaleDateString('fr-FR')
     const dateAujourdhui = new Date().toLocaleDateString('fr-FR')
+
+    // Logo en base64
+    const logoPath = path.join(__dirname, '../logo.png')
+    const logoBase64 = fs.readFileSync(logoPath).toString('base64')
+    const logoSrc = `data:image/png;base64,${logoBase64}`
 
     const html = `
 <!DOCTYPE html>
@@ -33,230 +35,261 @@ exports.genererAttestation = async (req, res) => {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Georgia', serif;
+      font-family: 'Arial', sans-serif;
       background: #fff;
       color: #1a1a1a;
-      padding: 60px;
-    }
-    .header {
-      text-align: center;
-      border-bottom: 3px solid #1a56db;
-      padding-bottom: 30px;
-      margin-bottom: 40px;
-    }
-    .company-name {
-      font-size: 28px;
-      font-weight: bold;
-      color: #1a56db;
-      letter-spacing: 2px;
-      margin-bottom: 6px;
-    }
-    .company-info {
+      padding: 40px 50px;
       font-size: 13px;
-      color: #666;
-      line-height: 1.6;
     }
-    .title {
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      color: #1a1a1a;
-      margin: 40px 0;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-    }
-    .subtitle {
-      text-align: center;
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 40px;
-    }
-    .content {
-      font-size: 15px;
-      line-height: 2;
-      text-align: justify;
+
+    /* HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #1a3bdb;
       margin-bottom: 30px;
     }
-    .highlight {
-      font-weight: bold;
-      color: #1a56db;
-    }
-    .info-box {
-      background: #f8faff;
-      border: 1px solid #dbeafe;
-      border-radius: 8px;
-      padding: 20px 30px;
-      margin: 30px 0;
-    }
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #e5e7eb;
-      font-size: 14px;
-    }
-    .info-row:last-child { border-bottom: none; }
-    .info-label { color: #666; }
-    .info-value { font-weight: bold; }
-    .score-section {
-      background: linear-gradient(135deg, #eff6ff, #dbeafe);
-      border-radius: 8px;
-      padding: 20px 30px;
-      margin: 30px 0;
-      text-align: center;
-    }
-    .score-number {
-      font-size: 48px;
-      font-weight: bold;
-      color: #1a56db;
-    }
-    .score-label { font-size: 14px; color: #666; margin-top: 4px; }
-    .badge {
-      display: inline-block;
-      padding: 4px 16px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-    .badge-performant { background: #dcfce7; color: #166534; }
-    .badge-moyen { background: #fef9c3; color: #854d0e; }
-    .badge-difficulte { background: #fee2e2; color: #991b1b; }
-    .signature {
-      margin-top: 60px;
-      display: flex;
-      justify-content: space-between;
-    }
-    .sig-block { text-align: center; width: 200px; }
-    .sig-line {
-      border-top: 1px solid #1a1a1a;
-      margin-bottom: 8px;
-      margin-top: 50px;
-    }
-    .sig-name { font-size: 13px; font-weight: bold; }
-    .sig-title { font-size: 12px; color: #666; }
-    .footer {
-      margin-top: 60px;
-      text-align: center;
+    .logo { height: 160px; }
+    .company-info {
+      text-align: right;
       font-size: 11px;
-      color: #999;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 20px;
+      color: #555;
+      line-height: 1.7;
     }
-    .seal {
+
+    /* TITLE */
+    .title-section { text-align: center; margin-bottom: 25px; }
+    .title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #1a3bdb;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .title-line {
       width: 80px;
-      height: 80px;
-      border: 3px solid #1a56db;
-      border-radius: 50%;
+      height: 3px;
+      background: #1a3bdb;
       margin: 0 auto;
+    }
+
+    /* INTRO */
+    .intro {
+      margin-bottom: 20px;
+      line-height: 1.8;
+      text-align: justify;
+    }
+    .highlight { font-weight: bold; color: #1a3bdb; }
+
+    /* INFO TABLE */
+    .info-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    .info-table tr { border-bottom: 1px solid #e5e7eb; }
+    .info-table tr:last-child { border-bottom: none; }
+    .info-table td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+    .info-table td:first-child {
+      color: #666;
+      width: 40%;
+      background: #f8faff;
+    }
+    .info-table td:last-child { font-weight: 600; }
+
+    /* SCORE */
+    .score-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .score-label { font-size: 12px; color: #555; }
+    .score-value { font-size: 28px; font-weight: bold; color: #1a3bdb; }
+    .score-badge {
+      background: #dcfce7;
+      color: #166534;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    /* CONCLUSION */
+    .conclusion {
+      margin-bottom: 30px;
+      line-height: 1.8;
+      text-align: justify;
+    }
+
+    /* SIGNATURE */
+    .signature-section {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 30px;
+      gap: 20px;
+    }
+    .sig-block { text-align: center; flex: 1; }
+    .sig-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 4px;
+    }
+    .sig-name {
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 60px;
+    }
+    .sig-line {
+      border-top: 1px solid #333;
+      padding-top: 6px;
+      font-size: 10px;
+      color: #888;
+    }
+    .cachet-box {
+      border: 2px dashed #bbb;
+      border-radius: 8px;
+      height: 80px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 10px;
-      color: #1a56db;
-      font-weight: bold;
+      color: #bbb;
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    /* FOOTER */
+    .footer {
+      margin-top: 25px;
       text-align: center;
-      line-height: 1.3;
+      font-size: 10px;
+      color: #aaa;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 12px;
     }
   </style>
 </head>
 <body>
 
+  <!-- HEADER -->
   <div class="header">
-    <div class="company-name">Creative Internet Solutions</div>
+    <img src="${logoSrc}" class="logo" alt="VALA Logo" />
     <div class="company-info">
-      Immeuble Safwa, Boulevard Hassan 1er, 2ème étage N°6, Dakhla – Agadir 80000, Maroc<br>
-      Tél : 00 212 528 21 3045 | S.A.R.L | Hébergement et création de site web
+      Immeuble Safwa, Boulevard Hassan 1er, 2ème étage N°6<br>
+      Dakhla – Agadir 80000, Maroc<br>
+      Tél : 00 212 528 21 3045<br>
+      S.A.R.L | RC : Agadir
     </div>
   </div>
 
-  <div class="title">Attestation de Stage</div>
-  <div class="subtitle">Délivrée à titre officiel par Creative Internet Solutions</div>
-
-  <div class="content">
-    Je soussigné, <span class="highlight">Mr. Abdelbast Kayouh</span>, Directeur Général de la société
-    <span class="highlight">Creative Internet Solutions</span>, atteste par la présente que :
+  <!-- TITLE -->
+  <div class="title-section">
+    <div class="title">Attestation de Stage</div>
+    <div class="title-line"></div>
   </div>
 
-  <div class="info-box">
-    <div class="info-row">
-      <span class="info-label">Nom et Prénom</span>
-      <span class="info-value">${stagiaire.user_id?.prenom} ${stagiaire.user_id?.nom}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Email</span>
-      <span class="info-value">${stagiaire.user_id?.email}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">École / Établissement</span>
-      <span class="info-value">${stagiaire.ecole}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Niveau d'études</span>
-      <span class="info-value">${stagiaire.niveau}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Département</span>
-      <span class="info-value">${stagiaire.departement}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Période de stage</span>
-      <span class="info-value">Du ${dateDebut} au ${dateFin}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Tuteur de stage</span>
-      <span class="info-value">${stagiaire.tuteur_id?.prenom || 'N/A'} ${stagiaire.tuteur_id?.nom || ''}</span>
-    </div>
+  <!-- INTRO -->
+  <div class="intro">
+    Je soussigné, <span class="highlight">${stagiaire.tuteur_id?.prenom || 'Neuman'} ${stagiaire.tuteur_id?.nom || 'Charhbili'}</span>, 
+Développeur et Tuteur de stage au sein de la société
+<span class="highlight">Creative Internet Solutions (VALA)</span>, atteste par la présente que :
   </div>
 
-  <div class="content">
-    A effectué un stage au sein de notre département
-    <span class="highlight">${stagiaire.departement}</span> du
-    <span class="highlight">${dateDebut}</span> au
-    <span class="highlight">${dateFin}</span>.
-    Durant cette période, le stagiaire a fait preuve de sérieux et de professionnalisme.
-  </div>
+  <!-- INFO TABLE -->
+  <table class="info-table">
+    <tr>
+      <td>Nom et Prénom</td>
+      <td>${stagiaire.user_id?.prenom} ${stagiaire.user_id?.nom}</td>
+    </tr>
+    <tr>
+      <td>Email</td>
+      <td>${stagiaire.user_id?.email}</td>
+    </tr>
+    <tr>
+      <td>École / Établissement</td>
+      <td>${stagiaire.ecole}</td>
+    </tr>
+    <tr>
+      <td>Niveau d'études</td>
+      <td>${stagiaire.niveau}</td>
+    </tr>
+    <tr>
+      <td>Département</td>
+      <td>${stagiaire.departement}</td>
+    </tr>
+    <tr>
+      <td>Période de stage</td>
+      <td>Du ${dateDebut} au ${dateFin}</td>
+    </tr>
+    <tr>
+      <td>Tuteur de stage</td>
+      <td>${stagiaire.tuteur_id?.prenom || 'N/A'} ${stagiaire.tuteur_id?.nom || ''}</td>
+    </tr>
+  </table>
 
+  <!-- SCORE -->
   ${dernierScore ? `
-  <div class="score-section">
-    <div class="score-label">Score de performance global</div>
-    <div class="score-number">${dernierScore.score_total}/100</div>
+  <div class="score-box">
     <div>
-      <span class="badge ${dernierScore.badge === 'performant' ? 'badge-performant' : dernierScore.badge === 'moyen' ? 'badge-moyen' : 'badge-difficulte'}">
-        ${dernierScore.badge === 'performant' ? '⭐ Performant' : dernierScore.badge === 'moyen' ? 'Moyen' : 'En difficulté'}
-      </span>
+      <div class="score-label">Score de performance global</div>
+      <div class="score-value">${dernierScore.score_total}/100</div>
     </div>
+    <span class="score-badge">⭐ ${dernierScore.badge === 'performant' ? 'Performant' : dernierScore.badge === 'moyen' ? 'Moyen' : 'En difficulté'}</span>
   </div>
   ` : ''}
 
-  <div class="content">
+  <!-- CONCLUSION -->
+  <div class="conclusion">
+    A effectué un stage au sein de notre département <span class="highlight">${stagiaire.departement}</span>
+    du <span class="highlight">${dateDebut}</span> au <span class="highlight">${dateFin}</span>.
+    Durant cette période, le/la stagiaire a fait preuve de sérieux, d'implication et de professionnalisme.
     La présente attestation est délivrée à l'intéressé(e) pour servir et valoir ce que de droit.
   </div>
 
-  <div class="signature">
-    <div class="sig-block">
-      <div class="sig-line"></div>
-      <div class="sig-name">${stagiaire.user_id?.prenom} ${stagiaire.user_id?.nom}</div>
-      <div class="sig-title">Le / La Stagiaire</div>
-    </div>
-    <div class="sig-block">
-      <div class="seal">Creative<br>Internet<br>Solutions</div>
-    </div>
-    <div class="sig-block">
-      <div class="sig-line"></div>
-      <div class="sig-name">Mr. Abdelbast Kayouh</div>
-      <div class="sig-title">Directeur Général</div>
-    </div>
+  <div style="text-align:right; font-size:12px; margin-bottom:20px;">
+    Fait à Agadir, le ${dateAujourdhui}
   </div>
 
+  <!-- SIGNATURES -->
+  <div class="signature-section">
+    <div class="sig-block">
+      <div class="sig-title">Le / La Stagiaire</div>
+      <div class="sig-name">${stagiaire.user_id?.prenom} ${stagiaire.user_id?.nom}</div>
+      <div class="sig-line">Signature</div>
+    </div>
+
+    <div class="sig-block">
+      <div class="sig-title">Cachet de l'entreprise</div>
+      <div class="cachet-box">Cachet officiel</div>
+      <div class="sig-line"></div>
+    </div>
+
+    <<div class="sig-block">
+  <div class="sig-title">Le Tuteur de Stage</div>
+  <div class="sig-name">${stagiaire.tuteur_id?.prenom || 'Neuman'} ${stagiaire.tuteur_id?.nom || 'Charhbili'}</div>
+  <div class="sig-line">Signature</div>
+</div>
+  </div>
+
+  <!-- FOOTER -->
   <div class="footer">
-    Document généré le ${dateAujourdhui} — SIPMS — Smart Intern Performance Management System<br>
-    Creative Internet Solutions | S.A.R.L | RC : Agadir
+    Document généré le ${dateAujourdhui} via SIPMS — Smart Intern Performance Management System<br>
+    Creative Internet Solutions (VALA) | S.A.R.L | Agadir, Maroc
   </div>
 
 </body>
-</html>
-    `
+</html>`
 
     const browser = await puppeteer.launch({
       headless: 'new',
@@ -269,7 +302,7 @@ exports.genererAttestation = async (req, res) => {
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' }
+      margin: { top: '20px', right: '0', bottom: '20px', left: '0' }
     })
 
     await browser.close()

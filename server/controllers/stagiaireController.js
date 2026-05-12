@@ -73,8 +73,45 @@ exports.supprimerStagiaire = async (req, res) => {
     if (!stagiaire) {
       return res.status(404).json({ message: 'Stagiaire non trouvé' })
     }
-    await User.findByIdAndDelete(stagiaire.user_id)
-    res.json({ message: 'Stagiaire supprimé avec succès' })
+
+    const stagiaire_id = stagiaire.user_id
+
+    // Supprimer toutes les données liées
+    await User.findByIdAndDelete(stagiaire_id)
+
+    const Rapport = require('../models/Rapport')
+    const Mission = require('../models/Mission')
+    const Score = require('../models/Score')
+    const Evaluation = require('../models/Evaluation')
+    const Feedback = require('../models/Feedback')
+
+    await Rapport.deleteMany({ stagiaire_id })
+    await Mission.deleteMany({ stagiaire_id })
+    await Score.deleteMany({ stagiaire_id })
+    await Evaluation.deleteMany({ stagiaire_id })
+    await Feedback.deleteMany({ stagiaire_id })
+
+    res.json({ message: 'Stagiaire et toutes ses données supprimés avec succès' })
+
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
+exports.modifierStagiaire = async (req, res) => {
+  try {
+    const { ecole, niveau, departement, tuteur_id, date_debut, date_fin } = req.body
+
+    const stagiaire = await Stagiaire.findByIdAndUpdate(
+      req.params.id,
+      { ecole, niveau, departement, tuteur_id, date_debut, date_fin },
+      { new: true }
+    )
+
+    if (!stagiaire) {
+      return res.status(404).json({ message: 'Stagiaire non trouvé' })
+    }
+
+    res.json({ message: 'Stagiaire modifié avec succès', stagiaire })
 
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
