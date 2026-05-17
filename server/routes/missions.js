@@ -10,7 +10,7 @@ const { verifyToken, checkRole } = require('../middleware/auth')
 
 router.post('/', verifyToken, checkRole(['admin', 'tuteur']), creerMission)
 router.get('/', verifyToken, getMissions)
-router.put('/:id/statut', verifyToken, updateStatut)
+router.put('/:id/statut', verifyToken, checkRole(['stagiaire', 'tuteur', 'admin']), updateStatut)
 router.delete('/:id', verifyToken, checkRole(['admin', 'tuteur']), supprimerMission)
 
 module.exports = router

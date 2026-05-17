@@ -12,6 +12,7 @@ function Missions() {
   })
 
   const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user'))
 
   const getMissions = async () => {
     try {
@@ -101,16 +102,18 @@ function Missions() {
           <h2 className="text-xl font-semibold text-gray-900">Missions</h2>
           <p className="text-sm text-gray-500 mt-1">{missions.length} mission(s) au total</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl transition"
-        >
-          + Ajouter une mission
-        </button>
+        {user?.role !== 'stagiaire' && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl transition"
+          >
+            + Ajouter une mission
+          </button>
+        )}
       </div>
 
-      {/* Formulaire */}
-      {showForm && (
+      {/* Formulaire — admin/tuteur seulement */}
+      {showForm && user?.role !== 'stagiaire' && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
           <h3 className="text-sm font-medium text-gray-900 mb-4">Nouvelle mission</h3>
           <form onSubmit={handleSubmit}>
@@ -229,16 +232,27 @@ function Missions() {
                       {new Date(m.deadline).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="px-6 py-4">
-                      <select
-                        value={m.statut}
-                        onChange={e => handleStatut(m._id, e.target.value)}
-                        className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${style}`}
-                      >
-                        <option value="a_faire">À faire</option>
-                        <option value="en_cours">En cours</option>
-                        <option value="en_retard">En retard</option>
-                        <option value="termine">Terminé</option>
-                      </select>
+                      {user?.role === 'stagiaire' ? (
+                        <select
+                          value={m.statut}
+                          onChange={e => handleStatut(m._id, e.target.value)}
+                          className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${style}`}
+                        >
+                          <option value="en_cours">En cours</option>
+                          <option value="termine">Terminé</option>
+                        </select>
+                      ) : (
+                        <select
+                          value={m.statut}
+                          onChange={e => handleStatut(m._id, e.target.value)}
+                          className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${style}`}
+                        >
+                          <option value="a_faire">À faire</option>
+                          <option value="en_cours">En cours</option>
+                          <option value="en_retard">En retard</option>
+                          <option value="termine">Terminé</option>
+                        </select>
+                      )}
                     </td>
                   </tr>
                 )
