@@ -78,10 +78,9 @@ function Dashboard() {
 
       {/* Sidebar */}
       <div className="w-56 bg-white border-r border-gray-100 flex flex-col">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h1 className="text-lg font-semibold text-gray-900">SIPMS</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Gestion des stagiaires</p>
-        </div>
+        <div className="px-3 py-2 border-b border-gray-100 flex items-center">
+  <img src={require('../logo.png')} alt="VALA" className="h-35 object-contain" style={{mixBlendMode: 'multiply'}} />
+</div>
 
         <nav className="flex-1 px-3 py-4">
           {menuItems.map(item => (
