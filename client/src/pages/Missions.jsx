@@ -20,9 +20,7 @@ function Missions() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMissions(res.data)
-    } catch (err) {
-      console.log(err)
-    }
+    } catch (err) { console.log(err) }
   }
 
   const getStagiaires = async () => {
@@ -31,9 +29,7 @@ function Missions() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setStagiaires(res.data)
-    } catch (err) {
-      console.log(err)
-    }
+    } catch (err) { console.log(err) }
   }
 
   useEffect(() => {
@@ -51,36 +47,27 @@ function Missions() {
       setShowForm(false)
       setForm({ titre: '', description: '', deadline: '', difficulte: 'facile', stagiaire_id: '' })
       getMissions()
-    } catch (err) {
-      console.log(err)
-    } finally {
-      setChargement(false)
-    }
+    } catch (err) { console.log(err) }
+    finally { setChargement(false) }
   }
 
   const getBadgeStatut = (statut) => {
-    const styles = {
-      'a_faire': 'bg-gray-100 text-gray-600',
-      'en_cours': 'bg-blue-50 text-blue-700',
-      'en_retard': 'bg-red-50 text-red-700',
-      'termine': 'bg-green-50 text-green-700',
+    const map = {
+      'a_faire':   { bg: '#f1f5f9', color: '#475569', dot: '#94a3b8',  label: 'À faire'   },
+      'en_cours':  { bg: '#eff4ff', color: '#1a56db', dot: '#1a56db',  label: 'En cours'  },
+      'en_retard': { bg: '#fff1f2', color: '#e11d48', dot: '#e11d48',  label: 'En retard' },
+      'termine':   { bg: '#f0fdf4', color: '#16a34a', dot: '#16a34a',  label: 'Terminé'   },
     }
-    const labels = {
-      'a_faire': 'À faire',
-      'en_cours': 'En cours',
-      'en_retard': 'En retard',
-      'termine': 'Terminé',
-    }
-    return { style: styles[statut], label: labels[statut] }
+    return map[statut] || map['a_faire']
   }
 
-  const getBadgeDifficulte = (diff) => {
-    const styles = {
-      'facile': 'bg-green-50 text-green-700',
-      'moyen': 'bg-orange-50 text-orange-700',
-      'difficile': 'bg-red-50 text-red-700',
+  const getDifficulteStyle = (diff) => {
+    const map = {
+      'facile':   { bg: '#f0fdf4', color: '#16a34a' },
+      'moyen':    { bg: '#fff7ed', color: '#ea580c' },
+      'difficile':{ bg: '#fff1f2', color: '#e11d48' },
     }
-    return styles[diff]
+    return map[diff] || map['facile']
   }
 
   const handleStatut = async (id, statut) => {
@@ -90,57 +77,209 @@ function Missions() {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       getMissions()
-    } catch (err) {
-      console.log(err)
-    }
+    } catch (err) { console.log(err) }
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
+    <>
+      <style>{`
+        .mis-header {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-bottom: 24px;
+        }
+        .mis-header h2 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 22px; font-weight: 700; color: #0e2a6e;
+        }
+        .mis-header p { font-size: 13px; color: #64748b; margin-top: 3px; }
+
+        .btn-primary {
+          display: inline-flex; align-items: center; gap: 6px;
+          background: #f97316; border: none; border-radius: 10px;
+          padding: 10px 18px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 13px; font-weight: 600; color: #fff;
+          cursor: pointer;
+          transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+          box-shadow: 0 3px 10px rgba(249,115,22,0.3);
+        }
+        .btn-primary:hover { background: #ea6c0a; transform: translateY(-1px); }
+
+        /* FORM */
+        .mis-form-card {
+          background: #fff; border-radius: 16px;
+          border: 1px solid #e8edf8; padding: 24px; margin-bottom: 24px;
+        }
+        .mis-form-card h3 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 15px; font-weight: 600; color: #0e2a6e;
+          margin-bottom: 20px;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .mis-form-card h3::before {
+          content: ''; display: inline-block;
+          width: 3px; height: 16px;
+          background: #f97316; border-radius: 2px;
+        }
+
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        .col-span-2 { grid-column: span 2; }
+
+        .form-field label {
+          display: block; font-size: 11px; font-weight: 600;
+          color: #0e2a6e; text-transform: uppercase;
+          letter-spacing: 0.05em; margin-bottom: 6px;
+        }
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+          width: 100%; background: #f8faff;
+          border: 1.5px solid #dbe4ff; border-radius: 10px;
+          padding: 10px 13px; font-size: 13.5px;
+          font-family: 'DM Sans', sans-serif; color: #0f172a;
+          outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+          resize: vertical;
+        }
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+          border-color: #1a56db;
+          box-shadow: 0 0 0 3px rgba(26,86,219,0.09);
+          background: #fff;
+        }
+        .form-field input::placeholder,
+        .form-field textarea::placeholder { color: #94a3b8; }
+
+        .form-actions { display: flex; align-items: center; gap: 12px; }
+        .btn-save {
+          background: #0e2a6e; border: none; border-radius: 10px;
+          padding: 10px 20px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 13px; font-weight: 600; color: #fff;
+          cursor: pointer; transition: background 0.15s;
+        }
+        .btn-save:hover:not(:disabled) { background: #1a3a8f; }
+        .btn-save:disabled { opacity: 0.55; cursor: not-allowed; }
+        .btn-cancel {
+          background: none; border: none; font-size: 13px;
+          color: #64748b; cursor: pointer; padding: 10px 14px;
+          border-radius: 8px; transition: background 0.13s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .btn-cancel:hover { background: #f1f5f9; color: #0f172a; }
+
+        /* TABLE */
+        .mis-table-card {
+          background: #fff; border-radius: 16px;
+          border: 1px solid #e8edf8; overflow: hidden;
+        }
+        .mis-table-card table { width: 100%; border-collapse: collapse; }
+        .mis-table-card thead tr { background: #f8faff; }
+        .mis-table-card th {
+          text-align: left; font-size: 11px; font-weight: 600;
+          color: #94a3b8; text-transform: uppercase;
+          letter-spacing: 0.06em; padding: 12px 20px;
+          border-bottom: 1px solid #f1f5fb;
+        }
+        .mis-table-card tbody tr {
+          border-bottom: 1px solid #f8faff; transition: background 0.12s;
+        }
+        .mis-table-card tbody tr:last-child { border-bottom: none; }
+        .mis-table-card tbody tr:hover { background: #f8faff; }
+        .mis-table-card td { padding: 14px 20px; font-size: 13.5px; color: #334155; }
+
+        .mis-title { font-weight: 600; color: #0f172a; font-size: 13.5px; }
+        .mis-desc { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+        .diff-badge {
+          font-size: 11px; font-weight: 600;
+          padding: 3px 10px; border-radius: 20px; white-space: nowrap;
+        }
+
+        .statut-select {
+          display: inline-flex; align-items: center; gap: 6px;
+          border: none; border-radius: 20px;
+          padding: 4px 10px 4px 8px;
+          font-size: 11px; font-weight: 600;
+          cursor: pointer; outline: none;
+          font-family: 'DM Sans', sans-serif;
+          appearance: none; -webkit-appearance: none;
+        }
+
+        .statut-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          display: inline-block; flex-shrink: 0;
+        }
+
+        .statut-wrapper {
+          display: inline-flex; align-items: center;
+          border-radius: 20px; overflow: hidden;
+          position: relative;
+        }
+        .statut-wrapper select {
+          border: none; border-radius: 20px;
+          padding: 4px 24px 4px 10px;
+          font-size: 11px; font-weight: 600;
+          cursor: pointer; outline: none;
+          font-family: 'DM Sans', sans-serif;
+          appearance: none; -webkit-appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2394a3b8'/%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 8px center;
+        }
+
+        .deadline-cell { font-size: 12px; color: #64748b; font-weight: 500; }
+
+        .stag-name-cell { font-size: 13px; font-weight: 500; color: #334155; }
+
+        .empty-state {
+          text-align: center; padding: 56px 20px;
+          color: #94a3b8; font-size: 13px;
+        }
+        .empty-state-icon { font-size: 32px; margin-bottom: 10px; }
+      `}</style>
+
+      {/* HEADER */}
+      <div className="mis-header">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">Missions</h2>
-          <p className="text-sm text-gray-500 mt-1">{missions.length} mission(s) au total</p>
+          <h2>Missions</h2>
+          <p>{missions.length} mission(s) au total</p>
         </div>
         {user?.role !== 'stagiaire' && (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl transition"
-          >
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             + Ajouter une mission
           </button>
         )}
       </div>
 
-      {/* Formulaire — admin/tuteur seulement */}
+      {/* FORM */}
       {showForm && user?.role !== 'stagiaire' && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-4">Nouvelle mission</h3>
+        <div className="mis-form-card">
+          <h3>Nouvelle mission</h3>
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="col-span-2">
-                <label className="text-xs text-gray-500 mb-1 block">Titre</label>
+            <div className="form-grid-2">
+              <div className="form-field col-span-2">
+                <label>Titre</label>
                 <input
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"
                   value={form.titre}
                   onChange={e => setForm({...form, titre: e.target.value})}
+                  placeholder="Titre de la mission"
                   required
                 />
               </div>
-              <div className="col-span-2">
-                <label className="text-xs text-gray-500 mb-1 block">Description</label>
+              <div className="form-field col-span-2">
+                <label>Description</label>
                 <textarea
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"
                   rows="3"
                   value={form.description}
                   onChange={e => setForm({...form, description: e.target.value})}
+                  placeholder="Décrivez la mission..."
                   required
                 />
               </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Stagiaire</label>
+              <div className="form-field">
+                <label>Stagiaire</label>
                 <select
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"
                   value={form.stagiaire_id}
                   onChange={e => setForm({...form, stagiaire_id: e.target.value})}
                   required
@@ -153,42 +292,29 @@ function Missions() {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Difficulté</label>
-                <select
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"
-                  value={form.difficulte}
-                  onChange={e => setForm({...form, difficulte: e.target.value})}
-                >
+              <div className="form-field">
+                <label>Difficulté</label>
+                <select value={form.difficulte} onChange={e => setForm({...form, difficulte: e.target.value})}>
                   <option value="facile">Facile</option>
                   <option value="moyen">Moyen</option>
                   <option value="difficile">Difficile</option>
                 </select>
               </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block">Deadline</label>
+              <div className="form-field">
+                <label>Deadline</label>
                 <input
                   type="date"
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm"
                   value={form.deadline}
                   onChange={e => setForm({...form, deadline: e.target.value})}
                   required
                 />
               </div>
             </div>
-            <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={chargement}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-xl transition"
-              >
-                {chargement ? 'Création...' : 'Créer la mission'}
+            <div className="form-actions">
+              <button type="submit" className="btn-save" disabled={chargement}>
+                {chargement ? 'Création...' : '✓ Créer la mission'}
               </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="text-sm text-gray-500 hover:text-gray-700 px-4 py-2"
-              >
+              <button type="button" className="btn-cancel" onClick={() => setShowForm(false)}>
                 Annuler
               </button>
             </div>
@@ -196,63 +322,74 @@ function Missions() {
         </div>
       )}
 
-      {/* Liste */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+      {/* TABLE */}
+      <div className="mis-table-card">
         {missions.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Aucune mission pour l'instant</p>
+          <div className="empty-state">
+            <div className="empty-state-icon">📋</div>
+            <p>Aucune mission pour l'instant</p>
+          </div>
         ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table>
+            <thead>
               <tr>
-                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Mission</th>
-                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Stagiaire</th>
-                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Difficulté</th>
-                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Deadline</th>
-                <th className="text-left text-xs text-gray-500 font-medium px-6 py-3">Statut</th>
+                <th>Mission</th>
+                <th>Stagiaire</th>
+                <th>Difficulté</th>
+                <th>Deadline</th>
+                <th>Statut</th>
               </tr>
             </thead>
             <tbody>
               {missions.map((m, i) => {
-                const { style, label } = getBadgeStatut(m.statut)
+                const statut = getBadgeStatut(m.statut)
+                const diff = getDifficulteStyle(m.difficulte)
                 return (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="px-6 py-4">
-                      <p className="text-sm font-medium text-gray-900">{m.titre}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{m.description?.substring(0, 50)}...</p>
+                  <tr key={i}>
+                    <td>
+                      <div className="mis-title">{m.titre}</div>
+                      <div className="mis-desc">{m.description?.substring(0, 60)}...</div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {m.stagiaire_id?.prenom} {m.stagiaire_id?.nom}
+                    <td>
+                      <span className="stag-name-cell">
+                        {m.stagiaire_id?.prenom} {m.stagiaire_id?.nom}
+                      </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`text-xs font-medium px-2 py-1 rounded-full ${getBadgeDifficulte(m.difficulte)}`}>
+                    <td>
+                      <span className="diff-badge" style={{ background: diff.bg, color: diff.color }}>
                         {m.difficulte}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-xs text-gray-400">
-                      {new Date(m.deadline).toLocaleDateString('fr-FR')}
+                    <td>
+                      <span className="deadline-cell">
+                        {new Date(m.deadline).toLocaleDateString('fr-FR')}
+                      </span>
                     </td>
-                    <td className="px-6 py-4">
-                      {user?.role === 'stagiaire' ? (
+                    <td>
+                      <div className="statut-wrapper">
                         <select
                           value={m.statut}
                           onChange={e => handleStatut(m._id, e.target.value)}
-                          className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${style}`}
+                          style={{
+                            background: statut.bg,
+                            color: statut.color,
+                          }}
                         >
-                          <option value="en_cours">En cours</option>
-                          <option value="termine">Terminé</option>
+                          {user?.role === 'stagiaire' ? (
+                            <>
+                              <option value="en_cours">En cours</option>
+                              <option value="termine">Terminé</option>
+                            </>
+                          ) : (
+                            <>
+                              <option value="a_faire">À faire</option>
+                              <option value="en_cours">En cours</option>
+                              <option value="en_retard">En retard</option>
+                              <option value="termine">Terminé</option>
+                            </>
+                          )}
                         </select>
-                      ) : (
-                        <select
-                          value={m.statut}
-                          onChange={e => handleStatut(m._id, e.target.value)}
-                          className={`text-xs font-medium px-2 py-1 rounded-full border-0 cursor-pointer ${style}`}
-                        >
-                          <option value="a_faire">À faire</option>
-                          <option value="en_cours">En cours</option>
-                          <option value="en_retard">En retard</option>
-                          <option value="termine">Terminé</option>
-                        </select>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 )
@@ -261,7 +398,7 @@ function Missions() {
           </table>
         )}
       </div>
-    </div>
+    </>
   )
 }
 

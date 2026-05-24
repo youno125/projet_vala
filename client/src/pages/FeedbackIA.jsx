@@ -60,32 +60,181 @@ function FeedbackIA() {
     }
   }
 
+  const sections = [
+    { key: 'resume',           icon: '📋', label: 'Résumé',              bg: '#eff4ff', border: '#bfcfff', labelColor: '#1a56db', textColor: '#1e3a8a' },
+    { key: 'points_forts',     icon: '💪', label: 'Points forts',        bg: '#f0fdf4', border: '#bbf7d0', labelColor: '#16a34a', textColor: '#14532d' },
+    { key: 'conseils',         icon: '💡', label: 'Conseils',            bg: '#fff7ed', border: '#fed7aa', labelColor: '#ea580c', textColor: '#7c2d12' },
+    { key: 'explication_score',icon: '📊', label: 'Explication du score',bg: '#faf5ff', border: '#e9d5ff', labelColor: '#7c3aed', textColor: '#3b0764' },
+    { key: 'alerte',           icon: '⚠️', label: 'Alerte',              bg: '#fff1f2', border: '#fecdd3', labelColor: '#e11d48', textColor: '#881337' },
+  ]
+
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Module IA — Feedback</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Analyse automatique des performances par intelligence artificielle
-        </p>
+    <>
+      <style>{`
+        .fia-header { margin-bottom: 24px; }
+        .fia-header h2 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 22px; font-weight: 700; color: #0e2a6e;
+        }
+        .fia-header p { font-size: 13px; color: #64748b; margin-top: 3px; }
+
+        .fia-generate-card {
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid #e8edf8;
+          padding: 22px 24px;
+          margin-bottom: 24px;
+        }
+        .fia-generate-card h3 {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 14px; font-weight: 600; color: #0e2a6e;
+          margin-bottom: 16px;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .fia-generate-card h3::before {
+          content: '';
+          display: inline-block;
+          width: 3px; height: 16px;
+          background: #f97316;
+          border-radius: 2px;
+        }
+
+        .fia-stagiaires-list {
+          display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;
+        }
+        .fia-stag-btn {
+          display: flex; align-items: center; gap: 8px;
+          background: #f8faff;
+          border: 1px solid #dbe4ff;
+          border-radius: 10px;
+          padding: 8px 14px;
+          font-size: 13px; font-weight: 500; color: #1a56db;
+          cursor: pointer;
+          transition: all 0.15s;
+          font-family: 'DM Sans', sans-serif;
+        }
+        .fia-stag-btn:hover:not(:disabled) {
+          background: #1a56db; color: #fff; border-color: #1a56db;
+        }
+        .fia-stag-btn:hover:not(:disabled) .fia-stag-avatar {
+          background: rgba(255,255,255,0.25); color: #fff;
+        }
+        .fia-stag-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .fia-stag-avatar {
+          width: 26px; height: 26px;
+          border-radius: 6px;
+          background: #dbe4ff;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 10px; font-weight: 700; color: #1a56db;
+          flex-shrink: 0;
+          transition: all 0.15s;
+        }
+
+        .fia-loading {
+          display: flex; align-items: center; gap: 10px;
+          background: #eff4ff; border-radius: 10px;
+          padding: 10px 14px;
+          font-size: 13px; color: #1a56db; font-weight: 500;
+        }
+        .fia-spinner {
+          width: 16px; height: 16px;
+          border: 2px solid #bfcfff;
+          border-top-color: #1a56db;
+          border-radius: 50%;
+          animation: fia-spin 0.7s linear infinite;
+          flex-shrink: 0;
+        }
+        @keyframes fia-spin { to { transform: rotate(360deg); } }
+
+        .fia-success {
+          margin-top: 10px;
+          font-size: 13px; color: #16a34a; font-weight: 500;
+          background: #f0fdf4; border-radius: 8px;
+          padding: 8px 12px;
+          display: inline-block;
+        }
+
+        .fia-empty {
+          background: #fff; border-radius: 16px;
+          border: 1px solid #e8edf8;
+          padding: 60px 24px;
+          text-align: center;
+        }
+        .fia-empty-icon {
+          font-size: 36px; margin-bottom: 12px;
+        }
+        .fia-empty p { font-size: 13px; color: #94a3b8; }
+
+        .fia-feedback-card {
+          background: #fff;
+          border-radius: 16px;
+          border: 1px solid #e8edf8;
+          overflow: hidden;
+          margin-bottom: 16px;
+        }
+        .fia-feedback-header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 22px;
+          border-bottom: 1px solid #f1f5fb;
+          background: #f8faff;
+        }
+        .fia-feedback-title {
+          display: flex; align-items: center; gap: 10px;
+        }
+        .fia-robot-icon {
+          width: 34px; height: 34px;
+          background: #0e2a6e;
+          border-radius: 10px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 16px;
+          flex-shrink: 0;
+        }
+        .fia-feedback-title-text {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 14px; font-weight: 600; color: #0e2a6e;
+        }
+        .fia-feedback-date {
+          font-size: 11px; color: #94a3b8;
+          background: #f1f5f9; padding: 4px 10px;
+          border-radius: 20px; font-weight: 500;
+        }
+
+        .fia-sections { padding: 18px 22px; display: flex; flex-direction: column; gap: 12px; }
+
+        .fia-section {
+          border-radius: 12px;
+          padding: 14px 16px;
+          border-left: 3px solid transparent;
+        }
+        .fia-section-label {
+          font-size: 11px; font-weight: 700;
+          text-transform: uppercase; letter-spacing: 0.06em;
+          margin-bottom: 6px;
+          display: flex; align-items: center; gap: 5px;
+        }
+        .fia-section-text {
+          font-size: 13.5px; line-height: 1.65;
+        }
+      `}</style>
+
+      <div className="fia-header">
+        <h2>Module IA — Feedback</h2>
+        <p>Analyse automatique des performances par intelligence artificielle</p>
       </div>
 
-      {/* Section admin/tuteur */}
       {(user?.role === 'admin' || user?.role === 'tuteur') && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6">
-          <h3 className="text-sm font-medium text-gray-900 mb-4">
-            Générer un feedback IA pour un stagiaire
-          </h3>
-          <div className="flex flex-wrap gap-3 mb-4">
+        <div className="fia-generate-card">
+          <h3>Générer un feedback IA pour un stagiaire</h3>
+          <div className="fia-stagiaires-list">
             {stagiaires.map(s => (
               <button
                 key={s._id}
-                onClick={() => {
-                  handleGenerer(s.user_id?._id)
-                }}
+                onClick={() => handleGenerer(s.user_id?._id)}
                 disabled={chargement}
-                className="flex items-center gap-2 bg-purple-50 hover:bg-purple-100 text-purple-700 text-sm px-4 py-2 rounded-xl transition"
+                className="fia-stag-btn"
               >
-                <div className="w-6 h-6 rounded-full bg-purple-200 flex items-center justify-center text-xs font-medium">
+                <div className="fia-stag-avatar">
                   {s.user_id?.prenom?.[0]}{s.user_id?.nom?.[0]}
                 </div>
                 {s.user_id?.prenom} {s.user_id?.nom}
@@ -93,20 +242,20 @@ function FeedbackIA() {
             ))}
           </div>
           {chargement && (
-            <div className="flex items-center gap-2 text-purple-600 text-sm">
-              <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-              L'IA analyse les données...
+            <div className="fia-loading">
+              <div className="fia-spinner"></div>
+              L'IA analyse les données en cours...
             </div>
           )}
-          {message && <p className="text-sm mt-2 text-green-600">{message}</p>}
+          {message && <div className="fia-success">{message}</div>}
         </div>
       )}
 
-      {/* Feedbacks */}
-      <div className="space-y-4">
+      <div>
         {feedbacks.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <p className="text-sm text-gray-400 text-center py-8">
+          <div className="fia-empty">
+            <div className="fia-empty-icon">🤖</div>
+            <p>
               {user?.role === 'stagiaire'
                 ? 'Aucun feedback IA généré pour vous encore'
                 : 'Cliquez sur un stagiaire pour générer son feedback'}
@@ -114,58 +263,43 @@ function FeedbackIA() {
           </div>
         ) : (
           feedbacks.map((f, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🤖</span>
-                  <p className="text-sm font-medium text-gray-900">Feedback IA</p>
+            <div key={i} className="fia-feedback-card">
+              <div className="fia-feedback-header">
+                <div className="fia-feedback-title">
+                  <div className="fia-robot-icon">🤖</div>
+                  <div>
+                    <div className="fia-feedback-title-text">Feedback IA</div>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400">
+                <span className="fia-feedback-date">
                   {new Date(f.createdAt).toLocaleDateString('fr-FR')}
-                </p>
+                </span>
               </div>
 
-              <div className="space-y-4">
-                {f.resume && (
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-blue-600 mb-1">📋 Résumé</p>
-                    <p className="text-sm text-blue-900">{f.resume}</p>
+              <div className="fia-sections">
+                {sections.map(sec => f[sec.key] && (
+                  <div
+                    key={sec.key}
+                    className="fia-section"
+                    style={{
+                      background: sec.bg,
+                      borderLeftColor: sec.border,
+                    }}
+                  >
+                    <div className="fia-section-label" style={{ color: sec.labelColor }}>
+                      <span>{sec.icon}</span> {sec.label}
+                    </div>
+                    <div className="fia-section-text" style={{ color: sec.textColor }}>
+                      {f[sec.key]}
+                    </div>
                   </div>
-                )}
-
-                {f.points_forts && (
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-green-600 mb-1">💪 Points forts</p>
-                    <p className="text-sm text-green-900">{f.points_forts}</p>
-                  </div>
-                )}
-
-                {f.conseils && (
-                  <div className="bg-orange-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-orange-600 mb-1">💡 Conseils</p>
-                    <p className="text-sm text-orange-900">{f.conseils}</p>
-                  </div>
-                )}
-
-                {f.explication_score && (
-                  <div className="bg-purple-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-purple-600 mb-1">📊 Explication du score</p>
-                    <p className="text-sm text-purple-900">{f.explication_score}</p>
-                  </div>
-                )}
-
-                {f.alerte && (
-                  <div className="bg-red-50 rounded-xl p-4">
-                    <p className="text-xs font-medium text-red-600 mb-1">⚠️ Alerte</p>
-                    <p className="text-sm text-red-900">{f.alerte}</p>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
           ))
         )}
       </div>
-    </div>
+    </>
   )
 }
 

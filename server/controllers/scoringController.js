@@ -99,6 +99,7 @@ exports.calculerEtSauvegarderScore = async (req, res) => {
 exports.getScoreStagiaire = async (req, res) => {
   try {
     const scores = await Score.find({ stagiaire_id: req.params.id })
+      .populate('stagiaire_id', 'prenom nom email') // ← ajouté
       .sort({ date: -1 })
       .limit(30)
 
@@ -111,14 +112,22 @@ exports.getScoreStagiaire = async (req, res) => {
 
 exports.getTousLesScores = async (req, res) => {
   try {
-    const stagiaires = await Score.aggregate([
-      { $sort: { date: -1 } },
-      { $group: { _id: '$stagiaire_id', dernierScore: { $first: '$$ROOT' } } },
-      { $replaceRoot: { newRoot: '$dernierScore' } },
-      { $sort: { score_total: -1 } }
-    ])
+    // Récupère le dernier score de chaque stagiaire, avec populate
+    // On remplace aggregate par une approche compatible avec populate
+    const tousScores = await Score.find()
+      .populate('stagiaire_id', 'prenom nom email') // ← ajouté
+      .sort({ score_total: -1, date: -1 })
 
-    res.json(stagiaires)
+    // Garder seulement le score le plus récent par stagiaire
+    const vus = new Set()
+    const dernierParStagiaire = tousScores.filter(s => {
+      const id = s.stagiaire_id?._id?.toString() || s.stagiaire_id?.toString()
+      if (!id || vus.has(id)) return false
+      vus.add(id)
+      return true
+    })
+
+    res.json(dernierParStagiaire)
 
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
