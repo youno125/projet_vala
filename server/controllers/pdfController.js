@@ -202,8 +202,8 @@ exports.genererAttestation = async (req, res) => {
   <!-- INTRO -->
   <div class="intro">
     Je soussigné, <span class="highlight">${stagiaire.tuteur_id?.prenom || 'Neuman'} ${stagiaire.tuteur_id?.nom || 'Charhbili'}</span>, 
-Développeur et Tuteur de stage au sein de la société
-<span class="highlight">Creative Internet Solutions (VALA)</span>, atteste par la présente que :
+    Développeur et Tuteur de stage au sein de la société
+    <span class="highlight">Creative Internet Solutions (VALA)</span>, atteste par la présente que :
   </div>
 
   <!-- INFO TABLE -->
@@ -275,11 +275,11 @@ Développeur et Tuteur de stage au sein de la société
       <div class="sig-line"></div>
     </div>
 
-    <<div class="sig-block">
-  <div class="sig-title">Le Tuteur de Stage</div>
-  <div class="sig-name">${stagiaire.tuteur_id?.prenom || 'Neuman'} ${stagiaire.tuteur_id?.nom || 'Charhbili'}</div>
-  <div class="sig-line">Signature</div>
-</div>
+    <div class="sig-block">
+      <div class="sig-title">Le Tuteur de Stage</div>
+      <div class="sig-name">${stagiaire.tuteur_id?.prenom || 'Neuman'} ${stagiaire.tuteur_id?.nom || 'Charhbili'}</div>
+      <div class="sig-line">Signature</div>
+    </div>
   </div>
 
   <!-- FOOTER -->

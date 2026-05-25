@@ -26,10 +26,19 @@ exports.creerMission = async (req, res) => {
 
 exports.getMissions = async (req, res) => {
   try {
-    const missions = await Mission.find()
-      .populate('stagiaire_id', 'nom prenom email')
-      .populate('tuteur_id', 'nom prenom')
-      .sort({ createdAt: -1 })
+    let missions
+
+    if (req.user.role === 'stagiaire') {
+      missions = await Mission.find({ stagiaire_id: req.user.id })
+        .populate('stagiaire_id', 'nom prenom email')
+        .populate('tuteur_id', 'nom prenom')
+        .sort({ createdAt: -1 })
+    } else {
+      missions = await Mission.find()
+        .populate('stagiaire_id', 'nom prenom email')
+        .populate('tuteur_id', 'nom prenom')
+        .sort({ createdAt: -1 })
+    }
 
     res.json(missions)
 
@@ -37,7 +46,6 @@ exports.getMissions = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
 }
-
 exports.updateStatut = async (req, res) => {
   try {
     const mission = await Mission.findByIdAndUpdate(

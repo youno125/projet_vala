@@ -135,8 +135,8 @@ function Dashboard() {
           border-bottom: 1px solid rgba(255,255,255,0.08);
         }
         .logo-icon {
-          width: 36px;
-          height: 36px;
+          width: 48px;
+          height: 48px;
           background: #f97316;
           border-radius: 10px;
           display: flex;
@@ -144,18 +144,18 @@ function Dashboard() {
           justify-content: center;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
-          font-size: 18px;
+          font-size: 24px;
           color: #fff;
           flex-shrink: 0;
         }
         .logo-text p:first-child {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
-          font-size: 15px;
+          font-size: 20px;
           color: #fff;
         }
         .logo-text p:last-child {
-          font-size: 10px;
+          font-size: 13px;
           color: rgba(255,255,255,0.45);
           margin-top: 1px;
         }

@@ -11,7 +11,6 @@ exports.creerStagiaire = async (req, res) => {
       tuteur_id, date_debut, date_fin
     } = req.body
 
-    // Créer le user
     const hash = await bcrypt.hash(mot_de_passe, 10)
     const user = await User.create({
       nom, prenom, email,
@@ -19,7 +18,6 @@ exports.creerStagiaire = async (req, res) => {
       role: 'stagiaire'
     })
 
-    // Créer le profil stagiaire
     const stagiaire = await Stagiaire.create({
       user_id: user._id,
       ecole, niveau, departement,
@@ -66,6 +64,44 @@ exports.getStagiaire = async (req, res) => {
   }
 }
 
+// Modifier un stagiaire — ← FIX : met à jour aussi le User
+exports.modifierStagiaire = async (req, res) => {
+  try {
+    const {
+      nom, prenom, email, mot_de_passe,
+      ecole, niveau, departement,
+      tuteur_id, date_debut, date_fin
+    } = req.body
+
+    // 1. Mettre à jour le profil stagiaire
+    const stagiaire = await Stagiaire.findByIdAndUpdate(
+      req.params.id,
+      { ecole, niveau, departement, tuteur_id, date_debut, date_fin },
+      { new: true }
+    )
+
+    if (!stagiaire) {
+      return res.status(404).json({ message: 'Stagiaire non trouvé' })
+    }
+
+    // 2. Mettre à jour le User lié (nom, prénom, email)
+    const userUpdate = { nom, prenom, email }
+
+    // Mettre à jour le mot de passe seulement s'il est fourni
+    if (mot_de_passe && mot_de_passe.trim() !== '') {
+      userUpdate.mot_de_passe = await bcrypt.hash(mot_de_passe, 10)
+    }
+
+    await User.findByIdAndUpdate(stagiaire.user_id, userUpdate)
+
+    res.json({ message: 'Stagiaire modifié avec succès', stagiaire })
+
+  } catch (error) {
+    console.log('ERREUR:', error)
+    res.status(500).json({ message: 'Erreur serveur', error: error.message })
+  }
+}
+
 // Supprimer un stagiaire
 exports.supprimerStagiaire = async (req, res) => {
   try {
@@ -76,7 +112,6 @@ exports.supprimerStagiaire = async (req, res) => {
 
     const stagiaire_id = stagiaire.user_id
 
-    // Supprimer toutes les données liées
     await User.findByIdAndDelete(stagiaire_id)
 
     const Rapport = require('../models/Rapport')
@@ -92,26 +127,6 @@ exports.supprimerStagiaire = async (req, res) => {
     await Feedback.deleteMany({ stagiaire_id })
 
     res.json({ message: 'Stagiaire et toutes ses données supprimés avec succès' })
-
-  } catch (error) {
-    res.status(500).json({ message: 'Erreur serveur', error: error.message })
-  }
-}
-exports.modifierStagiaire = async (req, res) => {
-  try {
-    const { ecole, niveau, departement, tuteur_id, date_debut, date_fin } = req.body
-
-    const stagiaire = await Stagiaire.findByIdAndUpdate(
-      req.params.id,
-      { ecole, niveau, departement, tuteur_id, date_debut, date_fin },
-      { new: true }
-    )
-
-    if (!stagiaire) {
-      return res.status(404).json({ message: 'Stagiaire non trouvé' })
-    }
-
-    res.json({ message: 'Stagiaire modifié avec succès', stagiaire })
 
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
