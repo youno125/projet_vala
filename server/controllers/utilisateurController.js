@@ -1,5 +1,6 @@
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
+const { envoyerEmailCreationCompte } = require('../emailService')
 
 exports.getUtilisateurs = async (req, res) => {
   try {
@@ -29,6 +30,9 @@ exports.creerUtilisateur = async (req, res) => {
       mot_de_passe: hash,
       role
     })
+
+    // Envoyer email avec identifiants
+    await envoyerEmailCreationCompte(prenom, email, mot_de_passe)
 
     const userSansMotDePasse = await User.findById(user._id).select('-mot_de_passe')
     res.status(201).json({ message: 'Utilisateur créé avec succès', user: userSansMotDePasse })
