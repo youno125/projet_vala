@@ -6,9 +6,14 @@ const Stagiaire = require('../models/Stagiaire')
 
 const calculerScore = async (stagiaire_id, date_debut) => {
 
+  console.log('=== CALCUL SCORE ===')
+  console.log('STAGIAIRE ID:', stagiaire_id)
+  console.log('TYPE:', typeof stagiaire_id)
+
   // 1. Score missions (40 pts)
   const totalMissions = await Mission.countDocuments({ stagiaire_id })
   const missionsTerminees = await Mission.countDocuments({ stagiaire_id, statut: 'termine' })
+  console.log('TOTAL MISSIONS:', totalMissions)
   const scoreMissions = totalMissions > 0 ? (missionsTerminees / totalMissions) * 40 : 0
 
   // 2. Score deadlines (30 pts)
@@ -32,6 +37,8 @@ const calculerScore = async (stagiaire_id, date_debut) => {
     current.setDate(current.getDate() + 1)
   }
   const totalRapports = await Rapport.countDocuments({ stagiaire_id })
+  console.log('TOTAL RAPPORTS:', totalRapports)
+  console.log('JOURS OUVRES:', joursOuvres)
   const scoreRapports = joursOuvres > 0 ? Math.min((totalRapports / joursOuvres) * 20, 20) : 0
 
   // 4. Score tuteur (10 pts)
@@ -51,15 +58,14 @@ const calculerScore = async (stagiaire_id, date_debut) => {
     scoreTuteur = (moyenne / 5) * 10
   }
 
-  // Total
   const scoreTotal = Math.round(scoreMissions + scoreDeadlines + scoreRapports + scoreTuteur)
+  console.log('SCORE FINAL:', scoreTotal)
+  console.log('===================')
 
-  // Badge
   let badge = 'moyen'
   if (scoreTotal >= 70) badge = 'performant'
   else if (scoreTotal < 40) badge = 'en_difficulte'
 
-  // Prédiction risque
   const derniersScores = await Score.find({ stagiaire_id })
     .sort({ date: -1 }).limit(3)
 
@@ -116,20 +122,17 @@ exports.getTousLesScores = async (req, res) => {
     let tousScores
 
     if (req.user.role === 'tuteur') {
-      // Tuteur voit seulement les scores de ses stagiaires
       const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
       const ids = stagiaires.map(s => s.user_id)
       tousScores = await Score.find({ stagiaire_id: { $in: ids } })
         .populate('stagiaire_id', 'prenom nom email')
         .sort({ score_total: -1, date: -1 })
     } else {
-      // Admin / Directeur voient tout
       tousScores = await Score.find()
         .populate('stagiaire_id', 'prenom nom email')
         .sort({ score_total: -1, date: -1 })
     }
 
-    // Garder seulement le score le plus récent par stagiaire
     const vus = new Set()
     const dernierParStagiaire = tousScores.filter(s => {
       const id = s.stagiaire_id?._id?.toString() || s.stagiaire_id?.toString()

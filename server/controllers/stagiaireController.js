@@ -1,7 +1,7 @@
 const User = require('../models/User')
 const Stagiaire = require('../models/Stagiaire')
 const bcrypt = require('bcryptjs')
-const { envoyerEmailCreationCompte } = require('../emailService')  // ← ajouté
+const { envoyerEmailCreationCompte } = require('../emailService')
 
 // Créer un stagiaire
 exports.creerStagiaire = async (req, res) => {
@@ -25,7 +25,6 @@ exports.creerStagiaire = async (req, res) => {
       tuteur_id, date_debut, date_fin
     })
 
-    // Envoyer email avec identifiants ← ajouté
     await envoyerEmailCreationCompte(prenom, email, mot_de_passe)
 
     res.status(201).json({ message: 'Stagiaire créé avec succès', user, stagiaire })
@@ -38,9 +37,20 @@ exports.creerStagiaire = async (req, res) => {
 
 exports.getStagiaires = async (req, res) => {
   try {
-    const stagiaires = await Stagiaire.find()
-      .populate('user_id', 'nom prenom email actif')
-      .populate('tuteur_id', 'nom prenom')
+    let stagiaires
+
+    if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement ses stagiaires
+      stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
+        .populate('user_id', 'nom prenom email actif')
+        .populate('tuteur_id', 'nom prenom')
+    } else {
+      // Admin / Directeur voient tout
+      stagiaires = await Stagiaire.find()
+        .populate('user_id', 'nom prenom email actif')
+        .populate('tuteur_id', 'nom prenom')
+    }
+
     res.json(stagiaires)
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })

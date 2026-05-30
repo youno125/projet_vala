@@ -10,7 +10,6 @@ exports.genererFeedback = async (req, res) => {
   try {
     const { stagiaire_id, semaine } = req.body
 
-    // Vérifier que le tuteur a le droit de générer un feedback pour ce stagiaire
     if (req.user.role === 'tuteur') {
       const stagiaire = await Stagiaire.findOne({
         user_id: stagiaire_id,
@@ -53,7 +52,7 @@ Jour ${i + 1}:
         {
           role: 'system',
           content: `Tu es un assistant RH bienveillant qui analyse les performances des stagiaires. 
-          Tu dois répondre UNIQUEMENT en JSON valide avec cette structure exacte:
+          Tu dois répondre UNIQUEMENT en JSON valide avec cette structure exacte, sans backticks ni texte autour:
           {
             "resume": "résumé de la semaine en 2-3 phrases",
             "points_forts": "points forts identifiés en 2-3 phrases",
@@ -78,7 +77,10 @@ Génère un feedback professionnel et bienveillant en français.`
       max_tokens: 1000
     })
 
-    const responseText = completion.choices[0]?.message?.content
+    // Nettoyer la réponse IA (enlever les backticks si présents)
+    let responseText = completion.choices[0]?.message?.content
+    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim()
+
     let feedbackData
 
     try {
@@ -116,12 +118,10 @@ exports.getFeedbacks = async (req, res) => {
     let feedbacks
 
     if (req.user.role === 'stagiaire') {
-      // Stagiaire voit seulement ses feedbacks
       feedbacks = await Feedback.find({ stagiaire_id: req.user.id })
         .sort({ createdAt: -1 })
 
     } else if (req.user.role === 'tuteur') {
-      // Tuteur voit seulement les feedbacks de ses stagiaires
       const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
       const ids = stagiaires.map(s => s.user_id)
       feedbacks = await Feedback.find({ stagiaire_id: { $in: ids } })
