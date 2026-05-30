@@ -1,4 +1,5 @@
 const Rapport = require('../models/Rapport')
+const Stagiaire = require('../models/Stagiaire')
 
 exports.creerRapport = async (req, res) => {
   try {
@@ -39,10 +40,21 @@ exports.getRapports = async (req, res) => {
     let rapports
 
     if (req.user.role === 'stagiaire') {
+      // Stagiaire voit seulement ses rapports
       rapports = await Rapport.find({ stagiaire_id: req.user.id })
         .populate('stagiaire_id', 'nom prenom email')
         .sort({ date: -1 })
+
+    } else if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement les rapports de ses stagiaires
+      const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
+      const ids = stagiaires.map(s => s.user_id)
+      rapports = await Rapport.find({ stagiaire_id: { $in: ids } })
+        .populate('stagiaire_id', 'nom prenom email')
+        .sort({ date: -1 })
+
     } else {
+      // Admin / Directeur voient tout
       rapports = await Rapport.find()
         .populate('stagiaire_id', 'nom prenom email')
         .sort({ date: -1 })

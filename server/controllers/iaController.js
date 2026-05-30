@@ -2,12 +2,24 @@ const Groq = require('groq-sdk')
 const Rapport = require('../models/Rapport')
 const Score = require('../models/Score')
 const Feedback = require('../models/Feedback')
+const Stagiaire = require('../models/Stagiaire')
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 exports.genererFeedback = async (req, res) => {
   try {
     const { stagiaire_id, semaine } = req.body
+
+    // Vérifier que le tuteur a le droit de générer un feedback pour ce stagiaire
+    if (req.user.role === 'tuteur') {
+      const stagiaire = await Stagiaire.findOne({
+        user_id: stagiaire_id,
+        tuteur_id: req.user.id
+      })
+      if (!stagiaire) {
+        return res.status(403).json({ message: 'Accès refusé — ce stagiaire ne vous est pas assigné' })
+      }
+    }
 
     const rapports = await Rapport.find({ stagiaire_id })
       .sort({ date: -1 })
@@ -101,8 +113,25 @@ Génère un feedback professionnel et bienveillant en français.`
 
 exports.getFeedbacks = async (req, res) => {
   try {
-    const feedbacks = await Feedback.find({ stagiaire_id: req.params.id })
-      .sort({ createdAt: -1 })
+    let feedbacks
+
+    if (req.user.role === 'stagiaire') {
+      // Stagiaire voit seulement ses feedbacks
+      feedbacks = await Feedback.find({ stagiaire_id: req.user.id })
+        .sort({ createdAt: -1 })
+
+    } else if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement les feedbacks de ses stagiaires
+      const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
+      const ids = stagiaires.map(s => s.user_id)
+      feedbacks = await Feedback.find({ stagiaire_id: { $in: ids } })
+        .sort({ createdAt: -1 })
+
+    } else {
+      // Admin / Directeur voient tout
+      feedbacks = await Feedback.find({ stagiaire_id: req.params.id })
+        .sort({ createdAt: -1 })
+    }
 
     res.json(feedbacks)
 

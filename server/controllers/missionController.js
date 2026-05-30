@@ -1,4 +1,5 @@
 const Mission = require('../models/Mission')
+const Stagiaire = require('../models/Stagiaire')
 
 exports.creerMission = async (req, res) => {
   try {
@@ -29,11 +30,23 @@ exports.getMissions = async (req, res) => {
     let missions
 
     if (req.user.role === 'stagiaire') {
+      // Stagiaire voit seulement ses missions
       missions = await Mission.find({ stagiaire_id: req.user.id })
         .populate('stagiaire_id', 'nom prenom email')
         .populate('tuteur_id', 'nom prenom')
         .sort({ createdAt: -1 })
+
+    } else if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement les missions de ses stagiaires
+      const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
+      const ids = stagiaires.map(s => s.user_id)
+      missions = await Mission.find({ stagiaire_id: { $in: ids } })
+        .populate('stagiaire_id', 'nom prenom email')
+        .populate('tuteur_id', 'nom prenom')
+        .sort({ createdAt: -1 })
+
     } else {
+      // Admin / Directeur voient tout
       missions = await Mission.find()
         .populate('stagiaire_id', 'nom prenom email')
         .populate('tuteur_id', 'nom prenom')
@@ -46,6 +59,7 @@ exports.getMissions = async (req, res) => {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
 }
+
 exports.updateStatut = async (req, res) => {
   try {
     const mission = await Mission.findByIdAndUpdate(

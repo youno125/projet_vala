@@ -2,6 +2,7 @@ const Mission = require('../models/Mission')
 const Rapport = require('../models/Rapport')
 const Evaluation = require('../models/Evaluation')
 const Score = require('../models/Score')
+const Stagiaire = require('../models/Stagiaire')
 
 const calculerScore = async (stagiaire_id, date_debut) => {
 
@@ -99,7 +100,7 @@ exports.calculerEtSauvegarderScore = async (req, res) => {
 exports.getScoreStagiaire = async (req, res) => {
   try {
     const scores = await Score.find({ stagiaire_id: req.params.id })
-      .populate('stagiaire_id', 'prenom nom email') // ← ajouté
+      .populate('stagiaire_id', 'prenom nom email')
       .sort({ date: -1 })
       .limit(30)
 
@@ -112,11 +113,21 @@ exports.getScoreStagiaire = async (req, res) => {
 
 exports.getTousLesScores = async (req, res) => {
   try {
-    // Récupère le dernier score de chaque stagiaire, avec populate
-    // On remplace aggregate par une approche compatible avec populate
-    const tousScores = await Score.find()
-      .populate('stagiaire_id', 'prenom nom email') // ← ajouté
-      .sort({ score_total: -1, date: -1 })
+    let tousScores
+
+    if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement les scores de ses stagiaires
+      const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
+      const ids = stagiaires.map(s => s.user_id)
+      tousScores = await Score.find({ stagiaire_id: { $in: ids } })
+        .populate('stagiaire_id', 'prenom nom email')
+        .sort({ score_total: -1, date: -1 })
+    } else {
+      // Admin / Directeur voient tout
+      tousScores = await Score.find()
+        .populate('stagiaire_id', 'prenom nom email')
+        .sort({ score_total: -1, date: -1 })
+    }
 
     // Garder seulement le score le plus récent par stagiaire
     const vus = new Set()
