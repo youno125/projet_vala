@@ -7,9 +7,7 @@ exports.getUtilisateurs = async (req, res) => {
     const utilisateurs = await User.find()
       .select('-mot_de_passe')
       .sort({ createdAt: -1 })
-
     res.json(utilisateurs)
-
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
@@ -48,12 +46,9 @@ exports.toggleActif = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'Utilisateur non trouvé' })
     }
-
     user.actif = !user.actif
     await user.save()
-
     res.json({ message: `Utilisateur ${user.actif ? 'activé' : 'désactivé'}`, user })
-
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
@@ -61,7 +56,25 @@ exports.toggleActif = async (req, res) => {
 
 exports.supprimerUtilisateur = async (req, res) => {
   try {
-    await User.findByIdAndDelete(req.params.id)
+    const user = await User.findByIdAndDelete(req.params.id)
+    if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé' })
+
+    if (user.role === 'stagiaire') {
+      const Stagiaire = require('../models/Stagiaire')
+      const Rapport = require('../models/Rapport')
+      const Mission = require('../models/Mission')
+      const Score = require('../models/Score')
+      const Evaluation = require('../models/Evaluation')
+      const Feedback = require('../models/Feedback')
+
+      await Stagiaire.deleteOne({ user_id: user._id })
+      await Rapport.deleteMany({ stagiaire_id: user._id })
+      await Mission.deleteMany({ stagiaire_id: user._id })
+      await Score.deleteMany({ stagiaire_id: user._id })
+      await Evaluation.deleteMany({ stagiaire_id: user._id })
+      await Feedback.deleteMany({ stagiaire_id: user._id })
+    }
+
     res.json({ message: 'Utilisateur supprimé' })
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
