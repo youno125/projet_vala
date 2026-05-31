@@ -36,6 +36,7 @@ const calculerScore = async (stagiaire_id, date_debut) => {
     if (jour !== 0 && jour !== 6) joursOuvres++
     current.setDate(current.getDate() + 1)
   }
+  if (joursOuvres === 0) joursOuvres = 1  // ← minimum 1 jour ouvré
   const totalRapports = await Rapport.countDocuments({ stagiaire_id })
   console.log('TOTAL RAPPORTS:', totalRapports)
   console.log('JOURS OUVRES:', joursOuvres)
@@ -87,16 +88,9 @@ const calculerScore = async (stagiaire_id, date_debut) => {
 exports.calculerEtSauvegarderScore = async (req, res) => {
   try {
     const { stagiaire_id, date_debut } = req.body
-
     const scores = await calculerScore(stagiaire_id, date_debut)
-
-    const score = await Score.create({
-      stagiaire_id,
-      ...scores
-    })
-
+    const score = await Score.create({ stagiaire_id, ...scores })
     res.json({ message: 'Score calculé', score })
-
   } catch (error) {
     console.log('ERREUR:', error)
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
@@ -109,9 +103,7 @@ exports.getScoreStagiaire = async (req, res) => {
       .populate('stagiaire_id', 'prenom nom email')
       .sort({ date: -1 })
       .limit(30)
-
     res.json(scores)
-
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
@@ -142,7 +134,6 @@ exports.getTousLesScores = async (req, res) => {
     })
 
     res.json(dernierParStagiaire)
-
   } catch (error) {
     res.status(500).json({ message: 'Erreur serveur', error: error.message })
   }
