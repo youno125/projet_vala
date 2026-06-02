@@ -77,12 +77,10 @@ Génère un feedback professionnel et bienveillant en français.`
       max_tokens: 1000
     })
 
-    // Nettoyer la réponse IA (enlever les backticks si présents)
     let responseText = completion.choices[0]?.message?.content
     responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim()
 
     let feedbackData
-
     try {
       feedbackData = JSON.parse(responseText)
     } catch {
@@ -118,19 +116,31 @@ exports.getFeedbacks = async (req, res) => {
     let feedbacks
 
     if (req.user.role === 'stagiaire') {
+      // Stagiaire voit seulement ses feedbacks
       feedbacks = await Feedback.find({ stagiaire_id: req.user.id })
         .sort({ createdAt: -1 })
 
     } else if (req.user.role === 'tuteur') {
+      // Tuteur voit seulement les feedbacks de ses stagiaires
       const stagiaires = await Stagiaire.find({ tuteur_id: req.user.id })
       const ids = stagiaires.map(s => s.user_id)
       feedbacks = await Feedback.find({ stagiaire_id: { $in: ids } })
         .sort({ createdAt: -1 })
 
-    } else {
-      // Admin / Directeur voient tout
-      feedbacks = await Feedback.find({ stagiaire_id: req.params.id })
+    } else if (req.user.role === 'directeur') {
+      // Directeur voit tous les feedbacks
+      feedbacks = await Feedback.find()
         .sort({ createdAt: -1 })
+
+    } else {
+      // Admin — si id fourni filtre par stagiaire, sinon tout
+      if (req.params.id) {
+        feedbacks = await Feedback.find({ stagiaire_id: req.params.id })
+          .sort({ createdAt: -1 })
+      } else {
+        feedbacks = await Feedback.find()
+          .sort({ createdAt: -1 })
+      }
     }
 
     res.json(feedbacks)

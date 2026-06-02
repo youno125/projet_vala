@@ -537,12 +537,17 @@ function Dashboard() {
           {activeMenu === 'dashboard' && (
             <div>
               <div className="page-header">
-                <h2>Bonjour, {user?.prenom} 👋</h2>
+                <h2>Bienvenue, {user?.prenom} {user?.nom}</h2>
                 <p>
-                  {user?.role === 'stagiaire'
-                    ? 'Bienvenue sur votre espace stagiaire'
-                    : 'Voici le tableau de bord de votre application'}
-                </p>
+                  
+  {user?.role === 'stagiaire'
+    ? 'Tableau de bord — Espace stagiaire'
+    : user?.role === 'tuteur'
+    ? 'Tableau de bord — Espace tuteur'
+    : user?.role === 'directeur'
+    ? 'Tableau de bord — Vue globale'
+    : 'Tableau de bord — Administration'}
+</p>
               </div>
 
               {/* Stat cards */}

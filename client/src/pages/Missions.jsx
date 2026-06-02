@@ -245,7 +245,7 @@ function Missions() {
           <h2>Missions</h2>
           <p>{missions.length} mission(s) au total</p>
         </div>
-        {user?.role !== 'stagiaire' && (
+        {(user?.role === 'admin' || user?.role === 'tuteur') && (
           <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
             + Ajouter une mission
           </button>
@@ -253,7 +253,7 @@ function Missions() {
       </div>
 
       {/* FORM */}
-      {showForm && user?.role !== 'stagiaire' && (
+      {showForm && (user?.role === 'admin' || user?.role === 'tuteur') && (
         <div className="mis-form-card">
           <h3>Nouvelle mission</h3>
           <form onSubmit={handleSubmit}>
@@ -368,12 +368,14 @@ function Missions() {
                     <td>
                       <div className="statut-wrapper">
                         <select
-                          value={m.statut}
-                          onChange={e => handleStatut(m._id, e.target.value)}
-                          style={{
-                            background: statut.bg,
-                            color: statut.color,
-                          }}
+  value={m.statut}
+  onChange={e => user?.role !== 'directeur' && handleStatut(m._id, e.target.value)}
+  disabled={user?.role === 'directeur'}
+  style={{
+    background: statut.bg,
+    color: statut.color,
+    cursor: user?.role === 'directeur' ? 'not-allowed' : 'pointer'
+  }}
                         >
                           {user?.role === 'stagiaire' ? (
                             <>

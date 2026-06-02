@@ -34,12 +34,14 @@ function FeedbackIA() {
   }
 
   useEffect(() => {
-    if (user?.role !== 'stagiaire') {
-      getStagiaires()
-    } else {
-      getFeedbacks(user.id)
-    }
-  }, [])
+  if (user?.role === 'stagiaire') {
+    getFeedbacks(user.id)
+  } else if (user?.role === 'directeur') {
+    getFeedbacks('all')
+  } else {
+    getStagiaires()
+  }
+}, [])
 
   const handleGenerer = async (stagiaireUserId) => {
     setChargement(true)
@@ -257,9 +259,11 @@ function FeedbackIA() {
             <div className="fia-empty-icon">🤖</div>
             <p>
               {user?.role === 'stagiaire'
-                ? 'Aucun feedback IA généré pour vous encore'
-                : 'Cliquez sur un stagiaire pour générer son feedback'}
-            </p>
+  ? 'Aucun feedback IA généré pour vous encore'
+  : user?.role === 'directeur'
+    ? 'Aucun feedback IA généré pour l\'instant'
+    : 'Cliquez sur un stagiaire pour générer son feedback'}
+</p>
           </div>
         ) : (
           feedbacks.map((f, i) => (

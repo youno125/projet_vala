@@ -14,6 +14,7 @@ function Stagiaires() {
   })
 
   const token = localStorage.getItem('token')
+  const user = JSON.parse(localStorage.getItem('user')) 
 
   const getStagiaires = async () => {
     try {
@@ -295,9 +296,11 @@ function Stagiaires() {
           <h2>Stagiaires</h2>
           <p>{stagiaires.length} stagiaire(s) au total</p>
         </div>
-        <button className="btn-primary" onClick={() => { resetForm(); setShowForm(!showForm) }}>
-          + Ajouter un stagiaire
-        </button>
+        {user?.role === 'admin' && (
+  <button className="btn-primary" onClick={() => { resetForm(); setShowForm(!showForm) }}>
+    + Ajouter un stagiaire
+  </button>
+)}
       </div>
 
       {/* FORM */}
